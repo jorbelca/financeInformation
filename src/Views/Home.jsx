@@ -9,6 +9,7 @@ const Home = () => {
 
   const state = searchStore((state) => state.searchs)
 
+  const removeAll = searchStore((state) => state.resetSearch)
   const removeSearch = searchStore((state) => state.removeSearch)
   const setSearch = searchStore((state) => state.setSearch)
   const setNotifications = notificationStore((state) => state.setNotifications)
@@ -25,6 +26,8 @@ const Home = () => {
 
     setSymbol("")
 
+    if (Object.keys(fin).length === 0)
+      return setNotifications("That symbol does not exist")
     if (fin["Error Message"]) return setNotifications(fin["Error Message"])
     if (fin["Note"]) return setNotifications(fin["Note"])
     if (fin["Note"] === undefined) setSearch(fin)
@@ -35,14 +38,16 @@ const Home = () => {
 
   return (
     <>
-      <div>INFOFinance</div>
+      <div className="title">
+        <div>InfoFinance</div>
+      </div>
       <div className="search">
         <Form onSubmit={(e) => handleSubmit(e)}>
           <InputGroup className="mr-5 p-5 ">
             <Form.Control
               size="sm"
               type="text"
-              placeholder="Enter a symbol"
+              placeholder="Enter a symbol of the US market"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
             />
@@ -50,8 +55,33 @@ const Home = () => {
           </InputGroup>
         </Form>
 
+        <div className="service-btns">
+          <div>
+            <Button
+              className="ms-auto"
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/compare}`)}
+            >
+              Compare with Charts
+            </Button>
+          </div>{" "}
+          <div>
+            <Button
+              className="ms-auto"
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (window.confirm("Do you want to clear the local memory ?"))
+                  removeAll()
+              }}
+            >
+              Remove All
+            </Button>
+          </div>
+        </div>
         {state.map((n, index) => (
-          <Accordion className="results">
+          <Accordion className="results" key={n["Symbol"]}>
             <Accordion.Header>
               {n["Symbol"]}
               <span className="ms-auto infoDetail">

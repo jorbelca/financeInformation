@@ -9,6 +9,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Bar,
+  ComposedChart,
 } from "recharts"
 import { hardData } from "../services/api"
 import { notificationStore, searchStore } from "../state/store"
@@ -16,13 +18,22 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useEffect } from "react"
 
 const Graphs = () => {
-  const [time, setTime] = useState("TIME_SERIES_MONTHLY_ADJUSTED")
-  // const [symbol, setSymbol] = useState("")
+  const [time] = useState("TIME_SERIES_MONTHLY_ADJUSTED")
+  const [searchSymbol, setSearchSymbol] = useState("")
+  let [lastData, setLastData] = useState([])
+
   const navigate = useNavigate()
   const addGraphData = searchStore((state) => state.addGraphData)
   const setNotifications = notificationStore((state) => state.setNotifications)
 
   let { symbol } = useParams()
+
+  const stateData = searchStore((state) =>
+    state.searchs.filter((n) => n["Symbol"] == symbol)
+  )
+  if (stateData.length === 0) {
+    navigate("/")
+  }
 
   useEffect(() => {
     const petition = async () => {
@@ -33,71 +44,154 @@ const Graphs = () => {
       if (fin["Error Message"]) return setNotifications(fin["Error Message"])
       if (fin["Note"]) return setNotifications(fin["Note"])
       if (fin["Note"] === undefined) addGraphData(symbol, fin)
+      console.log(fin)
     }
-  }, [time])
+    if (stateData[0].chartData === undefined) petition()
+  }, [])
 
-  const stateData = searchStore((state) =>
-    state.searchs.filter((n) => n["Symbol"] == symbol)
-  )
+  let data
+  let final
+  if (stateData[0].chartData !== undefined) {
+    data = stateData[0].chartData["Monthly Adjusted Time Series"]
 
-  const data = stateData[0].chartData["Monthly Adjusted Time Series"]
+    final = Object.keys(data).map((key) => {
+      return {
+        date: key.slice(0, -3),
+        price: +Number(data[key]["4. close"]).toFixed(2),
+        volume: +Number(data[key]["6. volume"]),
+      }
+    })
+  }
 
-  const final = Object.keys(data).map((key) => {
-    return (key = data[key])
-  })
-  console.log(final)
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    const res = await hardData(searchSymbol, time)
+    const data = await res.json()
+
+    if (data["Error Message"]) return setNotifications(data["Error Message"])
+    if (data["Note"]) return setNotifications(data["Note"])
+    const add = Object.values(data["Monthly Adjusted Time Series"]).map(
+      (n) => +Number(n["4. close"]).toFixed(2)
+    )
+    let finalData = []
+    for (let i = 0; i < final.length; i++) {
+      console.log(final[i])
+      finalData.push({ ...final[i], price2: add[i] })
+    }
+    setLastData(finalData)
+  }
+  if (lastData.length > 0) console.log(lastData)
   return (
     <>
-      <div>Chart of {symbol}</div>
-      <Button
-        className="ms-auto"
-        variant="warning"
-        size="sm"
-        onClick={() => navigate("/")}
-      >
-        Home
-      </Button>
-      <div style={{ width: "100%", height: 300 }}>
-        <ResponsiveContainer>
-          <LineChart
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="data" stroke="#8884d8" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* <div className="search">
-        <Form>
-          <InputGroup className="mr-5 p-5 ">
-            <Form.Control
-              data={data}
-              size="sm"
-              type="text"
-              placeholder={symbol}
-              value={symbol}
-            />
-            <Form.Select aria-label="Default select example" size="sm">
+      <div className="chart-title">
+        <div>
+          <h6>
+            Chart of {symbol}
+            {lastData.length > 0 ? ` vs  ${searchSymbol}` : ""}
+          </h6>
+        </div>
+        <div className="search">
+          <Form onSubmit={handleSearch}>
+            <InputGroup className="">
+              <Form.Control
+                size="sm"
+                type="text"
+                placeholder={symbol}
+                value={searchSymbol}
+                onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
+              />
+              {/* <Form.Select aria-label="Default select example" size="sm">
               <option disabled>Frecuency</option>
               <option value="TIME_SERIES_INTRADAY">Daily</option>
               <option value="TIME_SERIES_DAILY">Daily</option>
               <option value="TIME_SERIES_WEEKLY">Weekly</option>
               <option value="TIME_SERIES_DAILY">Monthly</option>
-            </Form.Select>
-            <Button type="submit">Search</Button>
-          </InputGroup>
-        </Form>
-      </div> */}
+            </Form.Select> */}
+              <Button type="submit">Compare</Button>
+            </InputGroup>
+          </Form>
+        </div>
+        <div>
+          <Button
+            className="ms-auto"
+            variant="warning"
+            size="sm"
+            onClick={() => navigate("/")}
+          >
+            Home
+          </Button>
+        </div>
+      </div>
+      {data !== undefined ? (
+        <div>
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <ResponsiveContainer width="95%" aspect={2.0 / 1.0}>
+              <ComposedChart
+                data={
+                  lastData.length <= 0 ? final.reverse() : lastData.reverse()
+                }
+                margin={{
+                  top: 20,
+                  right: 20,
+                  left: 0,
+                  bottom: 5,
+                }}
+                yAxisId={1}
+              >
+                <CartesianGrid strokeDasharray="1 1" />
+                <XAxis dataKey="date" />
+
+                {lastData.length > 0 &&
+                lastData.at(-1).price < lastData.at(-1).price2 ? (
+                  <YAxis dataKey="price2" />
+                ) : (
+                  <YAxis dataKey="price" />
+                )}
+
+                <YAxis
+                  dataKey="volume"
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#ccc"
+                />
+                <Tooltip />
+                <Legend />
+                <Line
+                  dot={{ r: 1 }}
+                  type="monotone"
+                  dataKey="price"
+                  stroke="red"
+                  key="price"
+                  name="price"
+                  yAxisId={0}
+                />
+                {lastData.length > 0 ? (
+                  <Line
+                    dot={{ r: 1 }}
+                    type="monotone"
+                    dataKey="price2"
+                    stroke="blue"
+                    key="price2"
+                    name="price2"
+                  />
+                ) : (
+                  ""
+                )}
+                <Bar yAxisId="right" dataKey="volume" fill="#ccc" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
     </>
   )
 }
@@ -128,22 +222,3 @@ export default Graphs
 //                 ))} */}
 //               </tbody>
 //             </Table>
-
-// const keys = state.map((n) => n["Monthly Time Series"])
-// const data = Object.values(state[2]["Monthly Time Series"])
-
-// const tata = [
-//   {
-//     x: keys.map((n) =>(return n)),
-//   },
-//   data.map((n) => {
-//     y: {
-//       n["1. open"]
-//     }
-//   }),
-// ]
-// let result = [{ x: "", y: "" }]
-// state.map((k) => ({
-//   x: Object.keys(k["Monthly Time Series"]),
-//   y: Object.values(k["Monthly Time Series"]),
-// }))

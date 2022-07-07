@@ -21,9 +21,10 @@ let searchStoreIn = (set => ({
 
   addGraphData: (symbol, data) => {
     set(state => ({
-      searchs:[ Object.assign(
-        state.searchs.filter((search) => search["Symbol"] == symbol)[0],
-        { chartData: data })]
+      searchs: [...state.searchs.filter((search) => search["Symbol"] != symbol)
+        , Object.assign(
+          state.searchs.filter((search) => search["Symbol"] == symbol)[0],
+          { chartData: data })]
     }))
   }
 }))
