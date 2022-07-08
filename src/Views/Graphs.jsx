@@ -74,20 +74,26 @@ const Graphs = () => {
       (n) => +Number(n["4. close"]).toFixed(2)
     )
     let finalData = []
+    const reversedFinal = final.reverse()
     for (let i = 0; i < final.length; i++) {
-      console.log(final[i])
-      finalData.push({ ...final[i], price2: add[i] })
+      finalData.push({ ...reversedFinal[i], price2: add[i] })
     }
-    setLastData(finalData)
+    setLastData(finalData.reverse())
   }
-  if (lastData.length > 0) console.log(lastData)
+
   return (
     <>
       <div className="chart-title">
         <div>
           <h6>
-            Chart of {symbol}
-            {lastData.length > 0 ? ` vs  ${searchSymbol}` : ""}
+            Chart of <span style={{ color: "red" }}>{symbol} </span>
+            {lastData.length > 0 ? (
+              <>
+                vs <span style={{ color: "blue" }}>{searchSymbol}</span>
+              </>
+            ) : (
+              ""
+            )}
           </h6>
         </div>
         <div className="search">
@@ -134,9 +140,7 @@ const Graphs = () => {
           >
             <ResponsiveContainer width="95%" aspect={2.0 / 1.0}>
               <ComposedChart
-                data={
-                  lastData.length <= 0 ? final.reverse() : lastData.reverse()
-                }
+                data={lastData.length <= 0 ? final.reverse() : lastData}
                 margin={{
                   top: 20,
                   right: 20,
