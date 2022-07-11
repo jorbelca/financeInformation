@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  position: relative;
+  min-height: 100vh;
 }
 .search{
   margin-top: -10px;
@@ -39,6 +41,24 @@
   align-items: baseline;
   justify-content: space-evenly;
 }
+
+footer.footer {
+  padding-bottom: 2.5rem
+}
+.content-footer{
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem;
+  font-weight: 100;
+  font-size: 0.6rem;
+}
+#icon {
+  color: grey;
+}
+
 @media (max-width:500px) {
   .infoDetail{
     display: none;

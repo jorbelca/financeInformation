@@ -1,7 +1,6 @@
 import React, { useState } from "react"
-import { Button, Form, InputGroup } from "react-bootstrap"
+import { Button, Form, InputGroup, Spinner } from "react-bootstrap"
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -21,6 +20,7 @@ const Graphs = () => {
   const [time] = useState("TIME_SERIES_MONTHLY_ADJUSTED")
   const [searchSymbol, setSearchSymbol] = useState("")
   let [lastData, setLastData] = useState([])
+  const [spinner, setSpinner] = useState(false)
 
   const navigate = useNavigate()
   const addGraphData = searchStore((state) => state.addGraphData)
@@ -38,13 +38,15 @@ const Graphs = () => {
   useEffect(() => {
     const petition = async () => {
       let fin
-      const res = await hardData(symbol, time)
-      fin = await res.json()
-
+      try {
+        const res = await hardData(symbol, time)
+        fin = await res.json()
+      } catch (e) {
+        if (e) return setNotifications(e)
+      }
       if (fin["Error Message"]) return setNotifications(fin["Error Message"])
       if (fin["Note"]) return setNotifications(fin["Note"])
       if (fin["Note"] === undefined) addGraphData(symbol, fin)
-      console.log(fin)
     }
     if (stateData[0].chartData === undefined) petition()
   }, [])
@@ -57,32 +59,58 @@ const Graphs = () => {
     final = Object.keys(data).map((key) => {
       return {
         date: key.slice(0, -3),
-        price: +Number(data[key]["4. close"]).toFixed(2),
+        [symbol]: +Number(data[key]["4. close"]).toFixed(2),
         volume: +Number(data[key]["6. volume"]),
       }
     })
   }
 
   const handleSearch = async (e) => {
+    setSpinner(true)
     e.preventDefault()
-    const res = await hardData(searchSymbol, time)
-    const data = await res.json()
-
-    if (data["Error Message"]) return setNotifications(data["Error Message"])
-    if (data["Note"]) return setNotifications(data["Note"])
+    let data
+    try {
+      const res = await hardData(searchSymbol, time)
+      data = await res.json()
+    } catch (e) {
+      if (e) return setNotifications(e)
+    }
+    if (data["Error Message"]) {
+      setSpinner(false)
+      return setNotifications(data["Error Message"])
+    }
+    if (data["Note"]) {
+      setSpinner(false)
+      return setNotifications(data["Note"])
+    }
     const add = Object.values(data["Monthly Adjusted Time Series"]).map(
       (n) => +Number(n["4. close"]).toFixed(2)
     )
     let finalData = []
     const reversedFinal = final.reverse()
     for (let i = 0; i < final.length; i++) {
-      finalData.push({ ...reversedFinal[i], price2: add[i] })
+      finalData.push({ ...reversedFinal[i], [searchSymbol]: add[i] })
     }
     setLastData(finalData.reverse())
+    setSpinner(false)
   }
 
   return (
     <>
+      <br />
+      <div>
+        <Button
+          className="ms-auto"
+          variant="warning"
+          size="sm"
+          onClick={() => navigate("/")}
+        >
+          <span>
+            <i className="fa-solid fa-arrow-left"></i>
+          </span>
+          &nbsp; Back to Home
+        </Button>
+      </div>
       <div className="chart-title">
         <div>
           <h6>
@@ -102,30 +130,31 @@ const Graphs = () => {
               <Form.Control
                 size="sm"
                 type="text"
-                placeholder={symbol}
+                placeholder={"Symbol to compare"}
                 value={searchSymbol}
                 onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
               />
-              {/* <Form.Select aria-label="Default select example" size="sm">
-              <option disabled>Frecuency</option>
-              <option value="TIME_SERIES_INTRADAY">Daily</option>
-              <option value="TIME_SERIES_DAILY">Daily</option>
-              <option value="TIME_SERIES_WEEKLY">Weekly</option>
-              <option value="TIME_SERIES_DAILY">Monthly</option>
-            </Form.Select> */}
-              <Button type="submit">Compare</Button>
+              {spinner === false ? (
+                <Button
+                  type="submit"
+                  disabled={searchSymbol == "" ? true : false}
+                >
+                  Compare
+                </Button>
+              ) : (
+                <Button variant="primary" disabled>
+                  <Spinner
+                    as="span"
+                    animation="grow"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Searching...
+                </Button>
+              )}
             </InputGroup>
           </Form>
-        </div>
-        <div>
-          <Button
-            className="ms-auto"
-            variant="warning"
-            size="sm"
-            onClick={() => navigate("/")}
-          >
-            Home
-          </Button>
         </div>
       </div>
       {data !== undefined ? (
@@ -153,10 +182,10 @@ const Graphs = () => {
                 <XAxis dataKey="date" />
 
                 {lastData.length > 0 &&
-                lastData.at(-1).price < lastData.at(-1).price2 ? (
-                  <YAxis dataKey="price2" />
+                lastData.at(-1)[symbol] < lastData.at(-1)[searchSymbol] ? (
+                  <YAxis dataKey={searchSymbol} />
                 ) : (
-                  <YAxis dataKey="price" />
+                  <YAxis dataKey={symbol} />
                 )}
 
                 <YAxis
@@ -170,25 +199,29 @@ const Graphs = () => {
                 <Line
                   dot={{ r: 1 }}
                   type="monotone"
-                  dataKey="price"
+                  dataKey={symbol}
                   stroke="red"
-                  key="price"
-                  name="price"
-                  yAxisId={0}
+                  key={`price of ${symbol}`}
+                  name={`price of ${symbol}`}
                 />
                 {lastData.length > 0 ? (
                   <Line
                     dot={{ r: 1 }}
                     type="monotone"
-                    dataKey="price2"
+                    dataKey={searchSymbol}
                     stroke="blue"
-                    key="price2"
-                    name="price2"
+                    key={`price of ${searchSymbol}`}
+                    name={`price of ${searchSymbol}`}
                   />
                 ) : (
                   ""
                 )}
-                <Bar yAxisId="right" dataKey="volume" fill="#ccc" />
+                <Bar
+                  yAxisId="right"
+                  dataKey="volume"
+                  fill="#ccc"
+                  name={`volume of ${symbol}`}
+                />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -201,28 +234,3 @@ const Graphs = () => {
 }
 
 export default Graphs
-
-// <Table responsive size="sm">
-//               <thead>
-//                 <tr>
-//                   <th></th>
-//                   <th>Open</th>
-//                   <th>High</th>
-//                   <th>Low</th>
-//                   <th>Close</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {/* {Object.values(Object.entries(n)[2][1]).map((n) => (
-//                   <>
-//                     <tr>
-//                       {Object.values(keys.map((n) => <td>{n}</td>))}
-//                       <td> {Number(n["1. open"]).toFixed(2)}</td>
-//                       <td>{Number(n["2. high"]).toFixed(2)}</td>
-//                       <td>{Number(n["3. low"]).toFixed(2)}</td>
-//                       <td>{Number(n["4. close"]).toFixed(2)}</td>
-//                     </tr>
-//                   </>
-//                 ))} */}
-//               </tbody>
-//             </Table>

@@ -1,12 +1,12 @@
 import React, { useState } from "react"
-import { Accordion, Button, Form, InputGroup } from "react-bootstrap"
+import { Accordion, Button, Form, InputGroup, Spinner } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import { fundamentals } from "../services/api"
 import { notificationStore, searchStore } from "../state/store"
 
 const Home = () => {
   const [symbol, setSymbol] = useState("")
-
+  const [spinner, setSpinner] = useState(false)
   const state = searchStore((state) => state.searchs)
 
   const removeAll = searchStore((state) => state.resetSearch)
@@ -19,19 +19,30 @@ const Home = () => {
   const eliminateData = (id) => removeSearch(id)
 
   const handleSubmit = async (e) => {
+    setSpinner(true)
     e.preventDefault()
-
-    const res = await fundamentals(symbol)
-    fin = await res.json()
-
+    try {
+      const res = await fundamentals(symbol)
+      fin = await res.json()
+    } catch (e) {
+      if (e) return setNotifications(e)
+    }
     setSymbol("")
 
-    if (Object.keys(fin).length === 0)
+    if (Object.keys(fin).length === 0) {
+      setSpinner(false)
       return setNotifications("That symbol does not exist")
-    if (fin["Error Message"]) return setNotifications(fin["Error Message"])
-    if (fin["Note"]) return setNotifications(fin["Note"])
+    }
+    if (fin["Error Message"]) {
+      setSpinner(false)
+      return setNotifications(fin["Error Message"])
+    }
+    if (fin["Note"]) {
+      setSpinner(false)
+      return setNotifications(fin["Note"])
+    }
     if (fin["Note"] === undefined) setSearch(fin)
-    console.log(fin)
+    setSpinner(false)
   }
 
   const navigate = useNavigate()
@@ -39,7 +50,7 @@ const Home = () => {
   return (
     <>
       <div className="title">
-        <div>InfoFinance</div>
+        <h2>InfoFinance</h2>
       </div>
       <div className="search">
         <Form onSubmit={(e) => handleSubmit(e)}>
@@ -47,11 +58,29 @@ const Home = () => {
             <Form.Control
               size="sm"
               type="text"
-              placeholder="Enter a symbol of the US market"
+              placeholder="Introduce a symbol of the US market"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
             />
-            <Button type="submit">Search</Button>
+            {spinner === false ? (
+              <Button type="submit" disabled={symbol == "" ? true : false}>
+                Search &nbsp;
+                <span>
+                  <i className="fa-solid fa-magnifying-glass"></i>
+                </span>
+              </Button>
+            ) : (
+              <Button variant="primary" disabled>
+                <Spinner
+                  as="span"
+                  animation="grow"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+                Searching...
+              </Button>
+            )}
           </InputGroup>
         </Form>
 
@@ -61,11 +90,11 @@ const Home = () => {
               className="ms-auto"
               variant="secondary"
               size="sm"
-              onClick={() => navigate(`/compare}`)}
+              onClick={() => navigate(`/compare`)}
             >
               Compare with Charts
             </Button>
-          </div>{" "}
+          </div>
           <div>
             <Button
               className="ms-auto"
@@ -76,14 +105,17 @@ const Home = () => {
                   removeAll()
               }}
             >
-              Remove All
+              Remove All &nbsp;
+              <span>
+                <i className="fa-solid fa-trash-can"></i>
+              </span>
             </Button>
           </div>
         </div>
         {state.map((n, index) => (
           <Accordion className="results" key={n["Symbol"]}>
             <Accordion.Header>
-              {n["Symbol"]}
+              <b> {n["Symbol"]}</b>
               <span className="ms-auto infoDetail">
                 {n["AssetType"]} / {n["Country"]} / {n["Currency"]}
               </span>
