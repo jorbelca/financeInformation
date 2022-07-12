@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { Button, Form, InputGroup, Spinner } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import { hardData } from "../services/api"
@@ -8,11 +8,11 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
   Bar,
   ComposedChart,
+  Tooltip,
 } from "recharts"
 
 const Compare = () => {
@@ -23,6 +23,7 @@ const Compare = () => {
   const navigate = useNavigate()
   const setNotifications = notificationStore((state) => state.setNotifications)
 
+  const colors = ["red", "blue", "black", "green", "orange", "purple", "brown"]
   const timeReturned = (timeSent) => {
     if (timeSent === "TIME_SERIES_DAILY") return "Time Series (Daily)"
     if (timeSent === "TIME_SERIES_WEEKLY") return "Weekly Time Series"
@@ -30,8 +31,22 @@ const Compare = () => {
   }
   const handleSearch = async (e) => {
     e.preventDefault()
-    if (data.length > 0 && data.symbols.map((n) => n === symbol))
-      return setNotifications("No duplicates of the same symbols")
+
+    if (data.length > 0 && time !== data.time) {
+      setTime(data.time)
+      return setNotifications(
+        "Please only comparisions with the same frecuency"
+      )
+    }
+
+    if (data.length > 0) {
+      data.symbols.map((n) => {
+        if (n === symbol) {
+          return setNotifications("No duplicates of the same symbols")
+        }
+      })
+    }
+
     setSpinner(true)
     let dataRecieved
     try {
@@ -49,8 +64,14 @@ const Compare = () => {
       setSpinner(false)
       return setNotifications(dataRecieved["Note"])
     }
+
     let final = []
     if (data.length > 0) {
+      data.symbols.map((n) => {
+        if (n === symbol) {
+          return setNotifications("No duplicates of the same symbols")
+        }
+      })
       const add = Object.values(dataRecieved[timeReturned(time)]).map(
         (n) => +Number(n["4. close"]).toFixed(2)
       )
@@ -86,7 +107,19 @@ const Compare = () => {
       return setData(final.reverse())
     }
   }
-  console.log(data)
+  let cleanedEnt = []
+  if (data.length > 0)
+    Object.entries(data.at(-1)).forEach((key) => {
+      if (key[0] !== "volume" && key[0] !== "date") {
+        cleanedEnt.push(key)
+      }
+    })
+  let orderedSymbol
+  if (cleanedEnt.length > 0)
+    cleanedEnt.sort((a, b) => {
+      a[1] > b[1] ? (orderedSymbol = a[0]) : (orderedSymbol = b[0])
+    })
+
   return (
     <>
       <div className="chart-title">
@@ -105,9 +138,9 @@ const Compare = () => {
           </Button>
         </div>
       </div>
-      <div className="search m-5">
+      <div className="search m-4">
         <Form onSubmit={handleSearch}>
-          <InputGroup className="">
+          <InputGroup>
             <Form.Control
               size="sm"
               type="text"
@@ -115,6 +148,7 @@ const Compare = () => {
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
             />
+
             <Form.Select
               aria-label="Default select "
               size="sm"
@@ -156,55 +190,52 @@ const Compare = () => {
       </div>
 
       {data.length > 0 ? (
-        <ResponsiveContainer width="95%" aspect={2.0 / 1.0}>
+        <ResponsiveContainer width="95%" aspect={1.5 / 1.0}>
           <ComposedChart
             data={data}
             margin={{
-              top: 20,
-              right: 20,
-              left: 0,
-              bottom: 5,
+              top: 30,
+              right: 10,
+              left: 5,
+              bottom: 0,
+            }}
+            wrapperStyle={{
+              bottom: 100,
             }}
           >
-            <CartesianGrid strokeDasharray="1 1" />
-            <XAxis dataKey="date" />
+            <CartesianGrid strokeDasharray="10 10" />
+            <XAxis dataKey="date" angle={-47} textAnchor="end" interval={15} />
 
-            {data.length > 1 &&
-            data.at(-1)[data.symbols[0]] < data.at(-1)[data.symbols[1]] ? (
-              <YAxis dataKey={data.symbols[1]} />
-            ) : (
-              <YAxis dataKey={data.symbols[0]} />
-            )}
+            <YAxis dataKey={orderedSymbol} />
+
             <YAxis
               dataKey="volume"
               yAxisId="right"
               orientation="right"
               stroke="#ccc"
+              angle={52}
             />
             <Tooltip />
-            <Legend />
-            <Line
-              dot={{ r: 1 }}
-              type="monotone"
-              dataKey={data.symbols[0]}
-              stroke="red"
-              key={`price of ${data.symbols[0]}`}
-              name={`price of ${data.symbols[0]}`}
-              yAxisId={0}
+            <Legend
+              wrapperStyle={{
+                left: 0,
+                top: 0,
+                paddingBottom: 40,
+              }}
             />
 
-            {data.length > 1 && Object.keys(data[1]).length > 3 ? (
+            {data.symbols.map((data) => (
               <Line
                 dot={{ r: 1 }}
                 type="monotone"
-                dataKey={data.symbols[1]}
-                stroke="blue"
-                key={`price of ${data.symbols[1]}`}
-                name={`price of ${data.symbols[1]}`}
+                dataKey={`${data}`}
+                stroke={colors[Math.floor(Math.random() * 7) + 1]}
+                key={`price of ${data}`}
+                name={`price of ${data}`}
+                yAxisId={0}
               />
-            ) : (
-              ""
-            )}
+            ))}
+
             <Bar
               yAxisId="right"
               dataKey="volume"

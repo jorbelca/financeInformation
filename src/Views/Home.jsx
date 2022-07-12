@@ -1,5 +1,13 @@
 import React, { useState } from "react"
-import { Accordion, Button, Form, InputGroup, Spinner } from "react-bootstrap"
+import {
+  Accordion,
+  Button,
+  Form,
+  InputGroup,
+  OverlayTrigger,
+  Spinner,
+  Tooltip,
+} from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import { fundamentals } from "../services/api"
 import { notificationStore, searchStore } from "../state/store"
@@ -55,13 +63,24 @@ const Home = () => {
       <div className="search">
         <Form onSubmit={(e) => handleSubmit(e)}>
           <InputGroup className="mr-5 p-5 ">
-            <Form.Control
-              size="sm"
-              type="text"
-              placeholder="Introduce a symbol of the US market"
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-            />
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip>
+                  Due to limitations of the api provider, in this input only
+                  introduce symbols of the US market
+                </Tooltip>
+              }
+            >
+              <Form.Control
+                size="sm"
+                type="text"
+                placeholder="Introduce a symbol of the US market"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+              />
+            </OverlayTrigger>
+
             {spinner === false ? (
               <Button type="submit" disabled={symbol == "" ? true : false}>
                 Search &nbsp;
@@ -86,14 +105,26 @@ const Home = () => {
 
         <div className="service-btns">
           <div>
-            <Button
-              className="ms-auto"
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate(`/compare`)}
+            <OverlayTrigger
+
+              key={"top"}
+              placement={"top"}
+              overlay={
+                <Tooltip>
+                  You can introduce any symbol of any market in the world, even
+                  ETF's
+                </Tooltip>
+              }
             >
-              Compare with Charts
-            </Button>
+              <Button
+                className="ms-auto"
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/compare`)}
+              >
+                Compare with Charts
+              </Button>
+            </OverlayTrigger>
           </div>
           <div>
             <Button

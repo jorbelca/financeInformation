@@ -98,7 +98,7 @@ const Graphs = () => {
   return (
     <>
       <br />
-      <div>
+      <div className="btn-home">
         <Button
           className="ms-auto"
           variant="warning"
@@ -165,21 +165,27 @@ const Graphs = () => {
               height: "100%",
               display: "flex",
               justifyContent: "center",
+              marginTop: 30,
             }}
           >
-            <ResponsiveContainer width="95%" aspect={2.0 / 1.0}>
+            <ResponsiveContainer width="95%" aspect={1.5 / 1.0}>
               <ComposedChart
                 data={lastData.length <= 0 ? final.reverse() : lastData}
                 margin={{
-                  top: 20,
-                  right: 20,
-                  left: 0,
-                  bottom: 5,
+                  top: 0,
+                  right: 10,
+                  left: 5,
+                  bottom: 0,
                 }}
                 yAxisId={1}
               >
-                <CartesianGrid strokeDasharray="1 1" />
-                <XAxis dataKey="date" />
+                <CartesianGrid strokeDasharray="10 10" />
+                <XAxis
+                  dataKey="date"
+                  angle={-47}
+                  textAnchor="end"
+                  interval={25}
+                />
 
                 {lastData.length > 0 &&
                 lastData.at(-1)[symbol] < lastData.at(-1)[searchSymbol] ? (
@@ -193,9 +199,14 @@ const Graphs = () => {
                   yAxisId="right"
                   orientation="right"
                   stroke="#ccc"
+                  angle={50}
                 />
                 <Tooltip />
-                <Legend />
+                <Legend
+                  wrapperStyle={{
+                    paddingTop: 40,
+                  }}
+                />
                 <Line
                   dot={{ r: 1 }}
                   type="monotone"
