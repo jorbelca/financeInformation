@@ -1,5 +1,0 @@
-![Captura de pantalla 2020-12-31 a las 12 56 33](https://user-images.githubusercontent.com/76847923/178558519-a7c129f8-2d0f-4968-a962-17853f03baca.png)
-![Captura de pantalla 2022-07-12 a las 19 39 04](https://user-images.githubusercontent.com/76847923/178558536-710b773a-fd88-4afb-b2c3-09e1bc8c0dbe.png)
-![Captura de pantalla 2022-07-12 a las 19 39 19](https://user-images.githubusercontent.com/76847923/178558541-499988cb-fcaa-4708-81b1-cff5e93c133c.png)
-![Captura de pantalla 2022-07-12 a las 19 39 36](https://user-images.githubusercontent.com/76847923/178558547-41dce923-a957-4a68-859e-e0a78f81ff7b.png)
-![Captura de pantalla 2022-07-12 a las 19 42 48](https://user-images.githubusercontent.com/76847923/178558549-8f46ff90-e7de-4424-8b31-d68d901480e0.png)
