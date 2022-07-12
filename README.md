@@ -5,6 +5,7 @@ Made with React, Zustand, React Bootstrap, Recharts and for the API the service 
 The info of the companies in the Home Page is stored in local memory of the browser.
 
 Due to the limitations of the api calls for minute(5) and that this is a portfolio project, the project is pretty limited.
+Deployment: https://finance-information.vercel.app/
 <br>
 
 Some captures:
