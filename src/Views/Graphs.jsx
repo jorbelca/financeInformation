@@ -188,7 +188,8 @@ const Graphs = () => {
                 />
 
                 {lastData.length > 0 &&
-                lastData.at(-1)[symbol] < lastData.at(-1)[searchSymbol] ? (
+                lastData[lastData.length - 1][symbol] <
+                  lastData[lastData.length - 1][searchSymbol] ? (
                   <YAxis dataKey={searchSymbol} />
                 ) : (
                   <YAxis dataKey={symbol} />

@@ -109,7 +109,7 @@ const Compare = () => {
   }
   let cleanedEnt = []
   if (data.length > 0)
-    Object.entries(data.at(-1)).forEach((key) => {
+    Object.entries(data[data.length - 1]).forEach((key) => {
       if (key[0] !== "volume" && key[0] !== "date") {
         cleanedEnt.push(key)
       }
