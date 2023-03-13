@@ -26,22 +26,18 @@ const Home = () => {
 
   const eliminateData = (id) => removeSearch(id)
 
-  const isAlready = () => {
-    let is = false
+  const handleSubmit = async (e) => {
+    let isAllready = false
+    setSpinner(true)
+    e.preventDefault()
     state.map((state) => {
       if (symbol === state.Symbol) {
-        is = true
+        isAllready = true
         setSpinner(false)
         return setNotifications("This symbol is allready in memory")
       }
-      return is
     })
-  }
-
-  const handleSubmit = async (e) => {
-    setSpinner(true)
-    e.preventDefault()
-    if (isAlready) return
+    if (isAllready === true) return
     try {
       const res = await fundamentals(symbol)
       fin = await res.json()
