@@ -19,9 +19,18 @@
   margin-top: -10px;
   margin-bottom: 20px;
 }
+.name {
+  margin: 0;
+  padding: 2px;
+}
 .results {
   margin: 0 10px;
   padding: 0px 20px;
+}
+.body-description {
+  font-size: 1em;
+  text-align: start;
+  margin-bottom: 15px;
 }
 .detail {
   display: grid;
@@ -48,8 +57,12 @@
 .symb {
   color: red;
   margin-right: 10px;
+  padding: 3px;
 }
-
+.accordion-btns {
+  display: flex;
+  margin-left: auto;
+}
 footer.footer {
   padding-bottom: 2.5rem;
 }
@@ -69,8 +82,30 @@ footer.footer {
 }
 
 @media (max-width: 500px) {
+  .name {
+    padding: 10px;
+  }
   .infoDetail {
     display: none;
+  }
+  .accordion-button {
+    flex-direction: column;
+  }
+  .accordion-btns {
+    margin-right: auto;
+  }
+  .accordion-header {
+    margin-top: 5px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 0.51px solid black;
+  }
+  .detail {
+    font-size: 0.8em;
+  }
+  .body-description {
+    font-size: 0.9em;
+    margin-bottom: 10px;
   }
 }
 @media (min-width: 1000px) {

@@ -155,37 +155,35 @@ const Home = () => {
           <Accordion className="results" key={n["Symbol"]}>
             <Accordion.Header>
               <span className="symb"> {n["Symbol"]}</span>
-              &nbsp;
-              <b> {n["Name"]}</b>
+              <p className="name">
+                <b> {n["Name"]}</b>
+              </p>
               <span className="ms-auto infoDetail">
                 {n["AssetType"]} / {n["Country"]} / {n["Currency"]}
               </span>
-              <Button
-                className="ms-auto"
-                variant="warning"
-                size="sm"
-                onClick={() => navigate(`/graphs/${n["Symbol"]}`)}
-              >
-                Graph
-              </Button>
-              <Button
-                className="ms-auto"
-                variant="danger"
-                size="sm"
-                onClick={() => eliminateData(n.id)}
-              >
-                Delete
-              </Button>
+              <div className="accordion-btns">
+                <Button
+                  className="ms-auto"
+                  variant="warning"
+                  size="sm"
+                  onClick={() => navigate(`/graphs/${n["Symbol"]}`)}
+                >
+                  Graph
+                </Button>
+                <Button
+                  className="ms-auto"
+                  variant="danger"
+                  size="sm"
+                  onClick={() => eliminateData(n.id)}
+                >
+                  <span>
+                    <i className="fa-solid fa-trash-can"></i>
+                  </span>
+                </Button>
+              </div>
             </Accordion.Header>
             <Accordion.Body>
-              <div
-                style={{
-                  fontSize: "1.2em",
-                  textAlign: "start",
-                  margin: 3,
-                  marginBottom: 15,
-                }}
-              >
+              <div className="body-description">
                 <b>Description: </b>
                 {n["Description"]}
                 <br />
