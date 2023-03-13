@@ -29,7 +29,7 @@ const Graphs = () => {
   let { symbol } = useParams()
 
   const stateData = searchStore((state) =>
-    state.searchs.filter((n) => n["Symbol"] == symbol)
+    state.searchs.filter((n) => n["Symbol"] === symbol)
   )
   if (stateData.length === 0) {
     navigate("/")
@@ -137,7 +137,7 @@ const Graphs = () => {
               {spinner === false ? (
                 <Button
                   type="submit"
-                  disabled={searchSymbol == "" ? true : false}
+                  disabled={searchSymbol === "" ? true : false}
                 >
                   Compare
                 </Button>
@@ -179,7 +179,7 @@ const Graphs = () => {
                 }}
                 yAxisId={1}
               >
-                <CartesianGrid strokeDasharray="10 10" />
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
                   angle={-47}

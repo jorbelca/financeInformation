@@ -26,9 +26,22 @@ const Home = () => {
 
   const eliminateData = (id) => removeSearch(id)
 
+  const isAlready = () => {
+    let is = false
+    state.map((state) => {
+      if (symbol === state.Symbol) {
+        is = true
+        setSpinner(false)
+        return setNotifications("This symbol is allready in memory")
+      }
+      return is
+    })
+  }
+
   const handleSubmit = async (e) => {
     setSpinner(true)
     e.preventDefault()
+    if (isAlready) return
     try {
       const res = await fundamentals(symbol)
       fin = await res.json()
@@ -77,12 +90,12 @@ const Home = () => {
                 type="text"
                 placeholder="Introduce a symbol of the US market"
                 value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
+                onChange={(e) => setSymbol(e.target.value.toLocaleUpperCase())}
               />
             </OverlayTrigger>
 
             {spinner === false ? (
-              <Button type="submit" disabled={symbol == "" ? true : false}>
+              <Button type="submit" disabled={symbol === "" ? true : false}>
                 Search &nbsp;
                 <span>
                   <i className="fa-solid fa-magnifying-glass"></i>
@@ -106,7 +119,6 @@ const Home = () => {
         <div className="service-btns">
           <div>
             <OverlayTrigger
-
               key={"top"}
               placement={"top"}
               overlay={
@@ -146,7 +158,9 @@ const Home = () => {
         {state.map((n, index) => (
           <Accordion className="results" key={n["Symbol"]}>
             <Accordion.Header>
-              <b> {n["Symbol"]}</b>
+              <span className="symb"> {n["Symbol"]}</span>
+              &nbsp;
+              <b> {n["Name"]}</b>
               <span className="ms-auto infoDetail">
                 {n["AssetType"]} / {n["Country"]} / {n["Currency"]}
               </span>
@@ -170,9 +184,10 @@ const Home = () => {
             <Accordion.Body>
               <div
                 style={{
-                  fontSize: "2.3vmin",
+                  fontSize: "1.2em",
                   textAlign: "start",
                   margin: 3,
+                  marginBottom: 15,
                 }}
               >
                 <b>Description: </b>
